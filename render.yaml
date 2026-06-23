@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: motogeo-pro
+    runtime: python
+    plan: free
+    buildCommand: |
+      npm install -g pnpm
+      pnpm install
+      pnpm run build
+    startCommand: python backend/server.py

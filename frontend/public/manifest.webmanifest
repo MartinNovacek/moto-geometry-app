@@ -1,0 +1,19 @@
+{
+  "name": "MotoGeo Pro",
+  "short_name": "MotoGeo",
+  "description": "Motorcycle geometry and suspension setup PWA.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef3ff",
+  "theme_color": "#4d74ff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

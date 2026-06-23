@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="MotoGeo">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MotoGeo Setup</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css?v=5">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Moto geometry lab</p>
+          <h1>GSX-R 1000 K8 setup</h1>
+        </div>
+        <button class="icon-button" id="resetButton" aria-label="Resetovat preset" title="Resetovat preset">
+          <span aria-hidden="true">&larr;</span>
+        </button>
+      </header>
+
+      <section class="status-strip" aria-label="Souhrn geometrie">
+        <div>
+          <span class="metric-label">Trail</span>
+          <strong id="trailValue">--</strong>
+        </div>
+        <div>
+          <span class="metric-label">Rake</span>
+          <strong id="rakeValue">--</strong>
+        </div>
+        <div>
+          <span class="metric-label">Pitch</span>
+          <strong id="pitchValue">--</strong>
+        </div>
+      </section>
+
+      <section class="bike-stage" aria-label="Vizualizace motocyklu">
+        <canvas id="bikeCanvas" width="760" height="430"></canvas>
+      </section>
+
+      <nav class="tabs" aria-label="Sekce aplikace">
+        <button class="tab is-active" data-tab="measure">Měření</button>
+        <button class="tab" data-tab="setup">Nastavení</button>
+        <button class="tab" data-tab="diagnosis">Diagnostika</button>
+      </nav>
+
+      <section class="panel is-active" id="measurePanel">
+        <div class="section-heading">
+          <h2>Aktuální stav</h2>
+          <p>Zadej změřené hodnoty se stejnou výbavou, tlakem pneumatik a jezdcem.</p>
+        </div>
+
+        <label class="field">
+          <span>Váha jezdce s výbavou <b id="riderWeightOut"></b></span>
+          <input id="riderWeight" type="range" min="55" max="125" step="1">
+        </label>
+
+        <label class="field">
+          <span>Rider sag předek <b id="frontSagOut"></b></span>
+          <input id="frontSag" type="range" min="15" max="55" step="1">
+        </label>
+
+        <label class="field">
+          <span>Rider sag zadek <b id="rearSagOut"></b></span>
+          <input id="rearSag" type="range" min="10" max="55" step="1">
+        </label>
+
+        <div class="two-col">
+          <label class="number-field">
+            <span>Přední pneu</span>
+            <select id="frontTire"></select>
+          </label>
+          <label class="number-field">
+            <span>Zadní pneu</span>
+            <select id="rearTire"></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel" id="setupPanel">
+        <div class="section-heading">
+          <h2>Změny geometrie</h2>
+          <p>Simuluj změny, které typicky řeší pomalé padání do zatáčky nebo nervozitu předku.</p>
+        </div>
+
+        <label class="field">
+          <span>Vidlice nad horními brýlemi <b id="forkOut"></b></span>
+          <input id="forkProtrusion" type="range" min="-5" max="15" step="0.5">
+        </label>
+
+        <label class="field">
+          <span>Zadní ride height / délka tlumiče <b id="shockOut"></b></span>
+          <input id="rearRideHeight" type="range" min="-8" max="12" step="0.5">
+        </label>
+
+        <label class="field">
+          <span>Přední offset brýlí <b id="offsetOut"></b></span>
+          <input id="tripleOffset" type="range" min="25" max="35" step="0.5">
+        </label>
+
+        <div class="hint-grid">
+          <article>
+            <h3>Více trailu</h3>
+            <p>Stabilnější, ale může vyžadovat víc síly do řídítek a hůř držet utažený oblouk.</p>
+          </article>
+          <article>
+            <h3>Méně trailu</h3>
+            <p>Lehčí nájezd do zatáčky, ale při přehnání neklid na brzdách a menší důvěra v předek.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" id="diagnosisPanel">
+        <div class="section-heading">
+          <h2>Chování motorky</h2>
+          <p>Vyber symptom. Appka navrhne měření a změny v pořadí od nejméně invazivních.</p>
+        </div>
+
+        <label class="number-field">
+          <span>Symptom</span>
+          <select id="symptom">
+            <option value="heavy">V zatáčce se peru s řízením</option>
+            <option value="wide">Motorka utíká ven po apexu</option>
+            <option value="nervous">Předek je nervózní / chvěje se</option>
+            <option value="harsh">Tvrdý předek, špatná zpětná vazba</option>
+          </select>
+        </label>
+
+        <div class="diagnosis" id="diagnosis"></div>
+      </section>
+
+      <section class="knowledge">
+        <h2>Co sledovat</h2>
+        <details open>
+          <summary>Sag a preload</summary>
+          <p>Preload nemění tvrdost pružiny, ale mění pracovní výšku podvozku. Příliš málo předního sagu zvedá předek, zvětší rake/trail a může ztížit zatáčení. Příliš mnoho sagu může ubrat rezervu zdvihu a zhoršit oporu na brzdách.</p>
+        </details>
+        <details>
+          <summary>Rake a trail</summary>
+          <p>Rake je sklon osy řízení od svislice. Trail je vzdálenost mezi stopou osy řízení na zemi a kontaktem pneumatiky. Trail je jeden z hlavních pocitových parametrů: víc stabilita, méně ochota zatočit.</p>
+        </details>
+        <details>
+          <summary>Rebound</summary>
+          <p>Rebound řeší rychlost návratu odpružení. Příliš zavřený rebound může motorku po sérii nerovností držet nízko, příliš otevřený ji nechá odskočit a rozvlnit se. V appce zatím slouží jako diagnostická poznámka, ne jako přesný výpočet.</p>
+        </details>
+      </section>
+
+      <footer>
+        <p>Výpočty jsou orientační model pro ladění a měření, ne náhrada bezpečné kontroly motocyklu. Zdroje: Suzuki GSX-R1000 2007/2008 publikované technické hodnoty, Dave Moss Tuning vzdělávací obsah o podvozku a pneumatikách.</p>
+      </footer>
+    </main>
+
+    <script src="app.js?v=5"></script>
+  </body>
+</html>
