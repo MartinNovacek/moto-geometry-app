@@ -4,7 +4,6 @@ services:
     runtime: python
     plan: free
     buildCommand: |
-      corepack enable
       pnpm install --frozen-lockfile
       pnpm run build
     startCommand: python backend/server.py
