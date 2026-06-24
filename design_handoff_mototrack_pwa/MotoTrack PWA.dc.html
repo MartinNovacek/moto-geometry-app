@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    @keyframes gaugeIn {
+      from { stroke-dashoffset: 477; }
+      to   { stroke-dashoffset: 165; }
+    }
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.18; }
+    }
+  </style>
+</helmet>
+
+<!-- ══════════════════════════════════════════════
+     FRAME 1 — ONBOARDING
+══════════════════════════════════════════════ -->
+<div data-screen-label="01 — Onboarding" style="position:absolute; left:60px; top:80px; width:402px;">
+  <p data-drags-parent="1" style="font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#777; margin:0 0 14px 0; text-align:center;">01 — ONBOARDING</p>
+
+  <x-import component="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+    <div style="background:#07090e; background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0) 0px,rgba(255,255,255,0) 23px,rgba(255,255,255,0.013) 23px,rgba(255,255,255,0.013) 24px); display:flex; flex-direction:column; align-items:center; padding:30px 22px 30px; box-sizing:border-box; position:relative; overflow:hidden; min-height:100%;">
+
+      <!-- ambient glow top -->
+      <div style="position:absolute; top:-110px; left:50%; transform:translateX(-50%); width:260px; height:260px; background:radial-gradient(circle,rgba(0,212,245,0.12) 0%,transparent 65%); pointer-events:none;"></div>
+
+      <!-- Logotype -->
+      <div style="text-align:center; width:100%; margin-top:10px; position:relative; z-index:1;">
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="rgba(0,212,245,0.2)" stroke-width="1"></circle>
+            <circle cx="12" cy="12" r="10" stroke="#00d4f5" stroke-width="1.5" stroke-dasharray="47 16" transform="rotate(135,12,12)" style="filter:drop-shadow(0 0 4px rgba(0,212,245,0.9));"></circle>
+            <line x1="12" y1="12" x2="17" y2="8" stroke="#00d4f5" stroke-width="1.5" stroke-linecap="round" style="filter:drop-shadow(0 0 3px rgba(0,212,245,1));"></line>
+            <circle cx="12" cy="12" r="1.8" fill="#00d4f5"></circle>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:900; color:#fff; letter-spacing:0.1em;">MOTOTRACK</span>
+        </div>
+        <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(255,255,255,0.28); letter-spacing:0.14em; text-transform:uppercase; margin-top:5px;">Precision maintenance</div>
+      </div>
+
+      <!-- divider -->
+      <div style="width:28px; height:1px; background:#00d4f5; opacity:0.4; margin:20px 0;"></div>
+
+      <!-- brand label -->
+      <div style="width:100%; margin-bottom:9px;">
+        <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase;">VYBERTE ZNAČKU</span>
+      </div>
+
+      <!-- brand grid -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; width:100%;">
+
+        <div style="border:1px solid #00d4f5; background:rgba(0,212,245,0.07); border-radius:8px; padding:13px 6px; text-align:center; box-shadow:0 0 16px rgba(0,212,245,0.1);">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:900; color:#00d4f5; letter-spacing:0.07em;">DUCATI</div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); border-radius:8px; padding:13px 6px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:rgba(255,255,255,0.38); letter-spacing:0.04em;">KAWASAKI</div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); border-radius:8px; padding:13px 6px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:rgba(255,255,255,0.38); letter-spacing:0.04em;">YAMAHA</div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); border-radius:8px; padding:13px 6px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:rgba(255,255,255,0.38); letter-spacing:0.04em;">HONDA</div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); border-radius:8px; padding:13px 6px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:rgba(255,255,255,0.38); letter-spacing:0.04em;">APRILIA</div>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); border-radius:8px; padding:13px 6px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; color:rgba(255,255,255,0.38); letter-spacing:0.04em;">BMW M</div>
+        </div>
+
+      </div>
+
+      <!-- model -->
+      <div style="width:100%; margin-top:16px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:7px;">MODEL</div>
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.11); border-radius:8px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:#fff; letter-spacing:0.02em;">Panigale V4 R</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.28);">2023</span>
+        </div>
+      </div>
+
+      <!-- starting km -->
+      <div style="width:100%; margin-top:10px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:7px;">POČÁTEČNÍ NÁJEZD</div>
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.11); border-radius:8px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600; color:#fff;">12 453</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:10px; color:rgba(255,255,255,0.28); letter-spacing:0.1em; text-transform:uppercase;">km</span>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="width:100%; margin-top:22px;">
+        <div style="background:#00d4f5; border-radius:9px; padding:16px; text-align:center; box-shadow:0 6px 28px rgba(0,212,245,0.35);">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:900; color:#07090e; letter-spacing:0.16em; text-transform:uppercase;">INICIALIZOVAT GARÁŽ</span>
+        </div>
+        <div style="margin-top:12px; text-align:center;">
+          <span style="font-family:'Barlow',sans-serif; font-size:11px; color:rgba(255,255,255,0.2);">Máte garáž? </span><span style="font-family:'Barlow',sans-serif; font-size:11px; color:rgba(0,212,245,0.55);">Přihlásit se</span>
+        </div>
+      </div>
+
+    </div>
+  </x-import>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FRAME 2 — DASHBOARD
+══════════════════════════════════════════════ -->
+<div data-screen-label="02 — Dashboard" style="position:absolute; left:542px; top:80px; width:402px;">
+  <p data-drags-parent="1" style="font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#777; margin:0 0 14px 0; text-align:center;">02 — DASHBOARD</p>
+
+  <x-import component="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+    <div style="background:#07090e; background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0) 0px,rgba(255,255,255,0) 23px,rgba(255,255,255,0.013) 23px,rgba(255,255,255,0.013) 24px); display:flex; flex-direction:column; height:100%; box-sizing:border-box;">
+
+      <!-- header -->
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; padding:16px 18px 4px;">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:2px;">Garáž</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:900; color:#fff; line-height:1.05; letter-spacing:0.01em;">PANIGALE V4 R</div>
+        </div>
+        <div style="position:relative; margin-top:2px;">
+          <div style="width:38px; height:38px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </div>
+          <div style="position:absolute; top:8px; right:8px; width:7px; height:7px; border-radius:50%; background:#ff3535; border:1.5px solid #07090e; animation:blinkDot 2s ease-in-out infinite;"></div>
+        </div>
+      </div>
+
+      <!-- subinfo -->
+      <div style="padding:0 18px 10px;">
+        <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.27);">2023 · Ducati · 12 453 km</span>
+      </div>
+
+      <!-- GAUGE — r=76, C≈477, track=270°=358, fill=87%=312, dashoffset: 477→165 -->
+      <div style="display:flex; justify-content:center; padding:4px 0 2px;">
+        <div style="position:relative; width:190px; height:190px;">
+          <svg width="190" height="190" viewBox="0 0 190 190">
+            <circle cx="95" cy="95" r="89" fill="none" stroke="rgba(255,255,255,0.035)" stroke-width="1"></circle>
+            <circle cx="95" cy="95" r="76" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="11" stroke-linecap="round" stroke-dasharray="358 119" transform="rotate(135,95,95)"></circle>
+            <circle cx="95" cy="95" r="76" fill="none" stroke="#00d4f5" stroke-width="11" stroke-linecap="round" stroke-dasharray="477 477" stroke-dashoffset="477" transform="rotate(135,95,95)" style="filter:drop-shadow(0 0 9px rgba(0,212,245,0.8)); animation:gaugeIn 1.9s cubic-bezier(0.4,0,0.2,1) 0.5s both;"></circle>
+            <circle cx="95" cy="95" r="62" fill="none" stroke="rgba(0,212,245,0.06)" stroke-width="1"></circle>
+          </svg>
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-53%); text-align:center; pointer-events:none;">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:50px; font-weight:900; color:#fff; line-height:1; letter-spacing:-0.03em;">87</div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; color:#00d4f5; letter-spacing:0.22em; text-transform:uppercase; margin-top:1px;">HEALTH</div>
+          </div>
+          <div style="position:absolute; bottom:14px; left:11px; font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,0.18);">0</div>
+          <div style="position:absolute; bottom:14px; right:11px; font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,0.18);">100</div>
+        </div>
+      </div>
+
+      <!-- quick stats -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; padding:10px 14px;">
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:11px 8px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:#fff; line-height:1; letter-spacing:-0.02em;">847</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:8px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; line-height:1.45;">km do<br>servisu</div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:11px 8px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:#fff; line-height:1; letter-spacing:-0.02em;">32</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:8px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; line-height:1.45;">dní od<br>oleje</div>
+        </div>
+
+        <div style="background:rgba(0,212,245,0.05); border:1px solid rgba(0,212,245,0.14); border-radius:10px; padding:11px 8px; text-align:center;">
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:#00d4f5; line-height:1; letter-spacing:-0.02em;">94%</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:8px; font-weight:700; color:rgba(0,212,245,0.45); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; line-height:1.45;">hladina<br>oleje</div>
+        </div>
+
+      </div>
+
+      <!-- alerts -->
+      <div style="padding:2px 14px; flex:1;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:8px;">UPOZORNĚNÍ</div>
+
+        <div style="background:rgba(255,53,53,0.08); border:1px solid rgba(255,53,53,0.26); border-radius:10px; padding:12px 13px; margin-bottom:7px; display:flex; align-items:center; gap:11px;">
+          <div style="width:7px; height:7px; border-radius:50%; background:#ff3535; flex-shrink:0; box-shadow:0 0 10px rgba(255,53,53,0.85); animation:blinkDot 1.5s ease-in-out infinite;"></div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; color:#fff; letter-spacing:0.02em;">Napnutí řetězu</div>
+            <div style="font-family:'Barlow',sans-serif; font-size:11px; color:rgba(255,110,110,0.85); margin-top:1px;">3 dny po splatnosti</div>
+          </div>
+          <div style="background:rgba(255,53,53,0.14); border:1px solid rgba(255,53,53,0.35); border-radius:5px; padding:4px 7px; flex-shrink:0;">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:900; color:#ff3535; letter-spacing:0.12em; text-transform:uppercase;">IHNED</span>
+          </div>
+        </div>
+
+        <div style="background:rgba(255,179,0,0.06); border:1px solid rgba(255,179,0,0.2); border-radius:10px; padding:12px 13px; display:flex; align-items:center; gap:11px;">
+          <div style="width:7px; height:7px; border-radius:50%; background:#ffb300; flex-shrink:0; box-shadow:0 0 8px rgba(255,179,0,0.65);"></div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; color:#fff; letter-spacing:0.02em;">Brzdová kapalina</div>
+            <div style="font-family:'Barlow',sans-serif; font-size:11px; color:rgba(255,179,0,0.75); margin-top:1px;">Splatnost za 12 dní</div>
+          </div>
+          <div style="background:rgba(255,179,0,0.1); border:1px solid rgba(255,179,0,0.25); border-radius:5px; padding:4px 7px; flex-shrink:0;">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:900; color:#ffb300; letter-spacing:0.12em; text-transform:uppercase;">12 DNÍ</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- bottom nav -->
+      <div style="border-top:1px solid rgba(255,255,255,0.07); display:grid; grid-template-columns:1fr 1fr 1fr 1fr; padding:10px 0 20px;">
+
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#00d4f5" stroke="none">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"></path>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:#00d4f5; letter-spacing:0.1em; text-transform:uppercase;">Garáž</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase;">Servis</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <polyline points="12 7 12 12 15 15"></polyline>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase;">Historie</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.1em; text-transform:uppercase;">Nastav.</span>
+        </div>
+
+      </div>
+
+    </div>
+  </x-import>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FRAME 3 — MOTORCYCLE DETAIL
+══════════════════════════════════════════════ -->
+<div data-screen-label="03 — Detail motocyklu" style="position:absolute; left:1024px; top:80px; width:402px;">
+  <p data-drags-parent="1" style="font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#777; margin:0 0 14px 0; text-align:center;">03 — DETAIL MOTOCYKLU</p>
+
+  <x-import component="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+    <div style="background:#07090e; background-image:repeating-linear-gradient(0deg,rgba(255,255,255,0) 0px,rgba(255,255,255,0) 23px,rgba(255,255,255,0.013) 23px,rgba(255,255,255,0.013) 24px); display:flex; flex-direction:column; height:100%; box-sizing:border-box;">
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; gap:11px; padding:14px 18px 0;">
+        <div style="width:32px; height:32px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase;">Detail</div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:900; color:#fff; line-height:1.05; letter-spacing:0.01em;">PANIGALE V4 R</div>
+        </div>
+      </div>
+
+      <!-- odometer hero -->
+      <div style="padding:16px 18px 14px; border-bottom:1px solid rgba(255,255,255,0.07); margin-top:4px;">
+        <div style="display:flex; align-items:baseline; gap:7px;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:56px; font-weight:900; color:#fff; line-height:1; letter-spacing:-0.03em;">12 453</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:600; color:rgba(255,255,255,0.3); letter-spacing:0.04em;">km</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:14px; margin-top:5px;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.25);">Celkový nájezd</span>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:#00d4f5;">+342 km / měsíc</span>
+        </div>
+      </div>
+
+      <!-- tabs -->
+      <div style="display:flex; padding:0 14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+        <div style="padding:10px 12px; border-bottom:2px solid #00d4f5; margin-bottom:-1px;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; color:#00d4f5; letter-spacing:0.14em; text-transform:uppercase;">Komponenty</span>
+        </div>
+        <div style="padding:10px 12px;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; color:rgba(255,255,255,0.28); letter-spacing:0.14em; text-transform:uppercase;">Servis</span>
+        </div>
+        <div style="padding:10px 12px;">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:11px; font-weight:700; color:rgba(255,255,255,0.28); letter-spacing:0.14em; text-transform:uppercase;">Historie</span>
+        </div>
+      </div>
+
+      <!-- component grid -->
+      <div style="padding:12px 14px 8px; flex:1;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:7px;">
+
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#00d4f5; flex-shrink:0; box-shadow:0 0 7px rgba(0,212,245,0.65);"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Motor</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(0,212,245,0.6); margin-top:1px;">V pořádku</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#00d4f5; flex-shrink:0; box-shadow:0 0 7px rgba(0,212,245,0.65);"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Brzdy</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(0,212,245,0.6); margin-top:1px;">V pořádku</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,179,0,0.05); border:1px solid rgba(255,179,0,0.2); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#ffb300; flex-shrink:0; box-shadow:0 0 7px rgba(255,179,0,0.65);"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Pneumatiky</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(255,179,0,0.8); margin-top:1px;">Zkontrolovat</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,53,53,0.07); border:1px solid rgba(255,53,53,0.28); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#ff3535; flex-shrink:0; box-shadow:0 0 9px rgba(255,53,53,0.85); animation:blinkDot 1.5s ease-in-out infinite;"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Řetěz</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(255,53,53,0.9); margin-top:1px;">Ihned!</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#00d4f5; flex-shrink:0; box-shadow:0 0 7px rgba(0,212,245,0.65);"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Olej</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(0,212,245,0.6); margin-top:1px;">Čerstvý (32d)</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:9px; padding:11px 13px; display:flex; align-items:center; gap:9px;">
+            <div style="width:7px; height:7px; border-radius:50%; background:#00d4f5; flex-shrink:0; box-shadow:0 0 7px rgba(0,212,245,0.65);"></div>
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; color:#fff; letter-spacing:0.02em;">Vzduch. filtr</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:10px; color:rgba(0,212,245,0.6); margin-top:1px;">V pořádku</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- last record -->
+      <div style="padding:0 14px 10px;">
+        <div style="font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:0.22em; text-transform:uppercase; margin-bottom:8px;">POSLEDNÍ ZÁZNAM</div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:13px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; color:#fff; letter-spacing:0.02em;">Výměna oleje + filtr</div>
+              <div style="font-family:'Barlow',sans-serif; font-size:11px; color:rgba(255,255,255,0.3); margin-top:3px;">Moto Servis Praha · 11 621 km</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.22); margin-left:8px; flex-shrink:0;">32d</span>
+          </div>
+          <div style="margin-top:10px; height:3px; background:rgba(255,255,255,0.07); border-radius:2px; overflow:hidden;">
+            <div style="width:37%; height:100%; background:linear-gradient(90deg, #00d4f5, rgba(0,212,245,0.3)); border-radius:2px;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:5px;">
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,0.18);">11 621 km</span>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,0.18);">13 300 km</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAB -->
+      <div style="padding:0 14px 22px;">
+        <div style="background:#00d4f5; border-radius:9px; padding:15px; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 26px rgba(0,212,245,0.35);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#07090e" stroke-width="2.8" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:900; color:#07090e; letter-spacing:0.16em; text-transform:uppercase;">PŘIDAT ZÁZNAM</span>
+        </div>
+      </div>
+
+    </div>
+  </x-import>
+</div>
+
+</x-dc>
+</body>
+</html>

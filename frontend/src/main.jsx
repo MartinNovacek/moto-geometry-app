@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { RotateCcw, Ruler, Settings2, Activity, Gauge, Bike, ListChecks, Save, Upload } from "lucide-react";
+import { RotateCcw, Ruler, Settings2, Activity, Gauge, ListChecks, Save, Upload } from "lucide-react";
 import "./styles.css";
 
 const tireOptions = [
@@ -75,7 +75,7 @@ function App() {
     <main className="app-shell">
       <header className="hero">
         <div>
-          <div className="kicker"><Bike size={15} /> MotoGeo Pro</div>
+          <div className="kicker"><img className="brand-icon" src="/icon-192.png" alt="" /> MotoGeo Pro</div>
           <h1>GSX-R 1000 K8</h1>
           <p>Geometrie podvozku, sag, offset a trail v jedné garážové PWA.</p>
         </div>
