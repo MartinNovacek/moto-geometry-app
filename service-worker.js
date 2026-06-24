@@ -1,10 +1,11 @@
-const CACHE_NAME = "motogeo-v6";
+const CACHE_NAME = "motogeo-v7";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
+  "./apple-touch-icon.png",
   "./icon.svg",
   "./icon-180.png",
   "./icon-192.png",
