@@ -526,18 +526,109 @@ function Select({ label, value, onChange, options }) {
 
 function buildDiagnosis(setup, geometry) {
   if (!geometry) return { title: "Čekám na výpočet", summary: "", points: [] };
-  const highTrail = geometry.trail > geometry.preset.published_trail + 5;
-  const rearSagHigh = setup.rearSag > geometry.rearSagTarget[1];
+  const trailDelta = geometry.trailDelta;
+  const absTrailDelta = Math.abs(trailDelta);
+  const highTrail = trailDelta >= 1.5;
+  const lowTrail = trailDelta <= -1.5;
+  const majorTrailChange = absTrailDelta >= 3.0;
+  const frontSagHigh = setup.frontSag > geometry.frontSagTarget[1];
   const frontSagLow = setup.frontSag < geometry.frontSagTarget[0];
+  const rearSagHigh = setup.rearSag > geometry.rearSagTarget[1];
+  const rearSagLow = setup.rearSag < geometry.rearSagTarget[0];
+  const noseDown = geometry.pitchDeg < -0.18;
+  const noseUp = geometry.pitchDeg > 0.18;
+  const points = [];
+
+  if (majorTrailChange) {
+    points.push(
+      `Trail je mimo sérii o ${signed(trailDelta)} mm. To už není kosmetika: 3-4 mm jezdec obvykle pozná na nájezdu, tlaku do řídítek i stabilitě na brzdách.`
+    );
+  } else if (absTrailDelta >= 1.5) {
+    points.push(
+      `Trail je proti sérii posunutý o ${signed(trailDelta)} mm. I 1.5-2 mm je u sportovní motorky použitelná ladicí změna, ne chyba zaokrouhlení.`
+    );
+  } else {
+    points.push(
+      "Trail je velmi blízko sérii. Pokud se motorka i tak chová divně, hledej nejdřív sag, tlak pneumatik, hydrauliku a stav pneumatik."
+    );
+  }
+
+  if (highTrail) {
+    points.push(
+      "Delší trail: motorka bude klidnější v přímce a na brzdách, ale může vyžadovat víc síly do řídítek, pomaleji padat do zatáčky a hůř dotahovat utažený oblouk k apexu."
+    );
+    points.push(
+      "Když s delším trailem utíká ven po apexu, často pomůže zvednout zadek, snížit předek nebo zkrátit trail offsetem. Dělej malé kroky a vždy znovu zkontroluj sag."
+    );
+  }
+
+  if (lowTrail) {
+    points.push(
+      "Kratší trail: nájezd bude lehčí a motorka ochotněji padne do zatáčky, ale může být nervóznější na brzdách, v rychlých změnách směru a při přidání plynu přes nerovnosti."
+    );
+    points.push(
+      "Pokud je předek neklidný nebo se řídítka rozkmitají, vrať stabilitu: zvedni předek, sniž zadek, přidej trail menším offsetem nebo zkontroluj, jestli rebound nepouští předek moc rychle nahoru."
+    );
+  }
+
+  if (frontSagHigh) {
+    points.push(
+      `Přední sag ${setup.frontSag} mm je nad cílem ${geometry.frontSagTarget[0]}-${geometry.frontSagTarget[1]} mm. Předek sedí nízko: při brzdění půjde dřív hluboko do zdvihu, může jít na doraz, zavírat geometrii a ztrácet oporu v první fázi nájezdu.`
+    );
+  } else if (frontSagLow) {
+    points.push(
+      `Přední sag ${setup.frontSag} mm je pod cílem ${geometry.frontSagTarget[0]}-${geometry.frontSagTarget[1]} mm. Předek stojí vysoko a má málo využitého negativního zdvihu: motorka může být tvrdá na ruce, méně čitelná na hrbolech a hůř zatáčet.`
+    );
+  } else {
+    points.push(
+      `Přední sag ${setup.frontSag} mm je v cíli. Pokud jde vidlice na doraz, neřeš to geometrií jako první: přidej oporu kompresí, ověř hladinu oleje/air gap a pružinu.`
+    );
+  }
+
+  if (rearSagHigh) {
+    points.push(
+      `Zadní sag ${setup.rearSag} mm je nad cílem ${geometry.rearSagTarget[0]}-${geometry.rearSagTarget[1]} mm. Zadek sedí nízko, prodlužuje trail a motorka typicky hůř zatáčí, víc se veze po zadku a může utíkat ven ze zatáčky.`
+    );
+  } else if (rearSagLow) {
+    points.push(
+      `Zadní sag ${setup.rearSag} mm je pod cílem ${geometry.rearSagTarget[0]}-${geometry.rearSagTarget[1]} mm. Zadek stojí vysoko: motorka zatočí rychleji, ale může ztrácet grip na výjezdu, být nervózní a tvrdá přes hrany.`
+    );
+  } else {
+    points.push(
+      `Zadní sag ${setup.rearSag} mm je v cíli. Když motorka pořád nechce držet stopu, pracuj s ride heightem po 1-2 mm a zapisuj pocit v nájezdu, apexu a výjezdu.`
+    );
+  }
+
+  if (noseDown) {
+    points.push(
+      `Postoj je víc na předku (${signed(geometry.pitchDeg)}° pitch). Čekej rychlejší reakci na řídítka a lepší ochotu zatočit, ale menší rezervu stability při tvrdém brzdění.`
+    );
+  } else if (noseUp) {
+    points.push(
+      `Postoj je víc na zadku (${signed(geometry.pitchDeg)}° pitch). Čekej stabilitu, ale pomalejší překlápění a větší tendenci jet široce, hlavně když je zadní rebound moc zavřený.`
+    );
+  }
+
+  points.push(
+    "Praktický test: na stejném úseku si zapiš čtyři věci - ochota začít zatáčet, stabilita na brzdách, držení apexu a klid na výjezdu. Jedna změna, jeden test, žádné hromadné ladění."
+  );
+
+  const title = majorTrailChange
+    ? trailDelta > 0
+      ? "Trail je citelně delší než série"
+      : "Trail je citelně kratší než série"
+    : highTrail
+      ? "Trail je lehce delší než série"
+      : lowTrail
+        ? "Trail je lehce kratší než série"
+        : frontSagHigh || frontSagLow || rearSagHigh || rearSagLow
+          ? "Trail je blízko, ale sag mění chování"
+          : "Geometrie je blízko baseline";
+
   return {
-    title: highTrail || rearSagHigh || frontSagLow ? "Těžké řízení pravděpodobně souvisí s výškou podvozku" : "Trail je blízko sériové hodnotě",
-    summary: `Aktuálně ${geometry.trail.toFixed(1)} mm trail, změna proti sérii ${signed(geometry.trailDelta)} mm.`,
-    points: [
-      rearSagHigh ? "Zadek sedí nízko: přidej preload vzadu nebo zvedni ride height." : "Zadní sag je v použitelném pásmu, pracuj po malých krocích s výškou.",
-      frontSagLow ? "Předek má málo sagu a stojí vysoko: uber preload, pokud zůstane brzdná rezerva." : "Přední sag nevypadá jako hlavní problém.",
-      "Offset brýlí mění trail přímo: větší offset zkracuje trail, menší offset ho prodlužuje.",
-      "Změň vždy jen jednu věc a zapiš nájezd, apex, výjezd a stabilitu na brzdách."
-    ]
+    title,
+    summary: `Aktuálně ${geometry.trail.toFixed(1)} mm trail proti sérii ${geometry.preset.published_trail.toFixed(1)} mm, rozdíl ${signed(trailDelta)} mm. Rake ${geometry.rakeDeg.toFixed(2)}°, pitch ${signed(geometry.pitchDeg)}°.`,
+    points
   };
 }
 
