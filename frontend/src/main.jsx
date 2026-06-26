@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { RotateCcw, Ruler, Settings2, Activity, Gauge, ListChecks, Save, Upload } from "lucide-react";
+import { RotateCcw, Ruler, Settings2, Activity, Gauge, ListChecks, Save, Upload, History, Trash2 } from "lucide-react";
 import "./styles.css";
 
 const tireOptions = [
@@ -24,26 +24,93 @@ const factorySetup = {
   curbWeight: 195,
   frontPressure: 2.3,
   rearPressure: 2.5,
-  forkProtrusion: 0,
+  forkProtrusion: 7,
   rearRideHeight: 0,
-  tripleOffset: 28
+  tripleOffset: 28,
+  frontPreloadTurns: 4,
+  frontReboundClicks: 6,
+  frontHighCompressionTurns: 3,
+  frontLowCompressionClicks: 14,
+  rearSpringLength: 161,
+  rearReboundClicks: 11,
+  rearHighCompressionTurns: 3,
+  rearLowCompressionClicks: 14
 };
 
 const customSetupKey = "motogeo-gsxr1000-k8-custom-setup-v1";
+const setupHistoryKey = "motogeo-gsxr1000-k8-setup-history-v1";
+const forkProtrusionMin = -1;
+const forkProtrusionMax = 15;
+const frontPreloadMaxTurns = 10.5;
+
+const manualReference = {
+  frontForkProtrusion: 7,
+  frontPreload: "cca 4 otáčky od plně povoleného preloadu / 3.5 rysky vidět",
+  frontRebound: "6 kliků ven z plně utažené polohy",
+  frontHighCompression: "3 otáčky ven z plně utažené polohy",
+  frontLowCompression: "14 kliků ven z plně utažené polohy",
+  rearSpringLength: "161 mm",
+  rearRebound: "11 kliků ven z plně utažené polohy (E-02/E-19)",
+  rearHighCompression: "3 otáčky ven z plně utažené polohy",
+  rearLowCompression: "14 kliků ven z plně utažené polohy (E-02/E-19)"
+};
 
 function readCustomSetup() {
   try {
     const raw = window.localStorage.getItem(customSetupKey);
     if (!raw) return null;
-    return { ...factorySetup, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const nextSetup = normalizeSetup({ ...factorySetup, ...parsed }, parsed);
+    const hasNewSuspensionFields =
+      Object.prototype.hasOwnProperty.call(parsed, "frontPreloadTurns") ||
+      Object.prototype.hasOwnProperty.call(parsed, "frontPreloadGrooves") ||
+      Object.prototype.hasOwnProperty.call(parsed, "rearSpringLength");
+    if (!hasNewSuspensionFields && Number(parsed.forkProtrusion) === 0) {
+      nextSetup.forkProtrusion = factorySetup.forkProtrusion;
+    }
+    return nextSetup;
   } catch {
     return null;
   }
 }
 
+function readSetupHistory() {
+  try {
+    const raw = window.localStorage.getItem(setupHistoryKey);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((entry) => ({
+      ...entry,
+      setup: normalizeSetup({ ...factorySetup, ...entry.setup }, entry.setup)
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function normalizeSetup(setup, source = setup) {
+  const nextSetup = { ...setup };
+  if (
+    !Object.prototype.hasOwnProperty.call(source ?? {}, "frontPreloadTurns") &&
+    Object.prototype.hasOwnProperty.call(source ?? {}, "frontPreloadGrooves")
+  ) {
+    nextSetup.frontPreloadTurns = preloadGroovesToTurns(source.frontPreloadGrooves);
+  }
+  return nextSetup;
+}
+
 function App() {
   const [savedSetup, setSavedSetup] = useState(() => readCustomSetup());
   const [setup, setSetup] = useState(() => savedSetup ?? factorySetup);
+  const [setupHistory, setSetupHistory] = useState(() => readSetupHistory());
+  const [logDraft, setLogDraft] = useState(() => ({
+    title: "Baseline",
+    place: "",
+    conditions: "",
+    feedback: "",
+    rating: 3
+  }));
   const [geometry, setGeometry] = useState(null);
   const [tab, setTab] = useState("measure");
   const [presetMessage, setPresetMessage] = useState(savedSetup ? "Načtena tvoje uložená verze" : "Factory GSX-R 1000 K8");
@@ -70,6 +137,38 @@ function App() {
   }, [setup]);
 
   const diagnosis = useMemo(() => buildDiagnosis(setup, geometry), [setup, geometry]);
+  const saveHistoryEntry = () => {
+    const entry = {
+      id: `${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      setup,
+      geometry,
+      ...logDraft
+    };
+    const nextHistory = [entry, ...setupHistory].slice(0, 80);
+    setSetupHistory(nextHistory);
+    window.localStorage.setItem(setupHistoryKey, JSON.stringify(nextHistory));
+    setLogDraft({
+      title: `Změna ${nextHistory.length + 1}`,
+      place: logDraft.place,
+      conditions: logDraft.conditions,
+      feedback: "",
+      rating: 3
+    });
+    setTab("log");
+  };
+
+  const deleteHistoryEntry = (entryId) => {
+    const nextHistory = setupHistory.filter((entry) => entry.id !== entryId);
+    setSetupHistory(nextHistory);
+    window.localStorage.setItem(setupHistoryKey, JSON.stringify(nextHistory));
+  };
+
+  const loadHistoryEntry = (entry) => {
+    setSetup(normalizeSetup({ ...factorySetup, ...entry.setup }, entry.setup));
+    setPresetMessage(`Načteno z logu: ${entry.title || formatDateTime(entry.createdAt)}`);
+    setTab("measure");
+  };
 
   return (
     <main className="app-shell">
@@ -106,6 +205,7 @@ function App() {
         <TabButton active={tab === "measure"} onClick={() => setTab("measure")} icon={<Ruler size={17} />} label="Měření" />
         <TabButton active={tab === "setup"} onClick={() => setTab("setup")} icon={<Settings2 size={17} />} label="Geometrie" />
         <TabButton active={tab === "diagnosis"} onClick={() => setTab("diagnosis")} icon={<Activity size={17} />} label="Diagnostika" />
+        <TabButton active={tab === "log"} onClick={() => setTab("log")} icon={<History size={17} />} label="Log" />
         <TabButton active={tab === "guide"} onClick={() => setTab("guide")} icon={<ListChecks size={17} />} label="Postup" />
       </nav>
 
@@ -157,10 +257,40 @@ function App() {
         )}
 
         {tab === "setup" && (
-          <Panel title="Geometrické změny" subtitle="Tady je největší vliv na vztah rake, offset a trail. Měň po malých krocích.">
-            <Range label="Vidlice nad brýlemi" unit="mm" min={-5} max={15} step={0.5} value={setup.forkProtrusion} onChange={(forkProtrusion) => setSetup({ ...setup, forkProtrusion })} />
+          <Panel title="Geometrie a kliky" subtitle="Zapiš reálné nastavení motorky. Manuál bere kliky a otáčky ven z plně utažené polohy.">
+            <ManualBaseline />
+            <Range label="Vidlice nad horními brýlemi bez horní zátky" unit="mm" min={forkProtrusionMin} max={forkProtrusionMax} step={0.5} value={setup.forkProtrusion} onChange={(forkProtrusion) => setSetup({ ...setup, forkProtrusion })} />
             <Range label="Zadní ride height" unit="mm" min={-8} max={12} step={0.5} value={setup.rearRideHeight} onChange={(rearRideHeight) => setSetup({ ...setup, rearRideHeight })} />
             <Range label="Offset brýlí" unit="mm" min={25} max={35} step={0.5} value={setup.tripleOffset} onChange={(tripleOffset) => setSetup({ ...setup, tripleOffset })} />
+            <div className="setting-group">
+              <h3>Přední vidlice</h3>
+              <div className="field-row">
+                <Range
+                  label="Preload od plně povoleného"
+                  unit=""
+                  min={0}
+                  max={frontPreloadMaxTurns}
+                  step={0.25}
+                  value={setup.frontPreloadTurns}
+                  displayValue={formatFrontPreload(setup.frontPreloadTurns)}
+                  onChange={(frontPreloadTurns) => setSetup({ ...setup, frontPreloadTurns })}
+                />
+                <Range label="Rebound" unit="kliků" min={0} max={12} step={1} value={setup.frontReboundClicks} onChange={(frontReboundClicks) => setSetup({ ...setup, frontReboundClicks })} />
+              </div>
+              <div className="field-row">
+                <Range label="High compression" unit="otáček" min={0} max={4} step={0.25} value={setup.frontHighCompressionTurns} onChange={(frontHighCompressionTurns) => setSetup({ ...setup, frontHighCompressionTurns })} />
+                <Range label="Low compression" unit="kliků" min={0} max={20} step={1} value={setup.frontLowCompressionClicks} onChange={(frontLowCompressionClicks) => setSetup({ ...setup, frontLowCompressionClicks })} />
+              </div>
+            </div>
+            <div className="setting-group">
+              <h3>Zadní tlumič</h3>
+              <Range label="Délka pružiny / preload" unit="mm" min={156} max={166} step={0.5} value={setup.rearSpringLength} onChange={(rearSpringLength) => setSetup({ ...setup, rearSpringLength })} />
+              <div className="field-row">
+                <Range label="Rebound" unit="kliků" min={0} max={18} step={1} value={setup.rearReboundClicks} onChange={(rearReboundClicks) => setSetup({ ...setup, rearReboundClicks })} />
+                <Range label="High compression" unit="otáček" min={0} max={4} step={0.25} value={setup.rearHighCompressionTurns} onChange={(rearHighCompressionTurns) => setSetup({ ...setup, rearHighCompressionTurns })} />
+              </div>
+              <Range label="Low compression" unit="kliků" min={0} max={20} step={1} value={setup.rearLowCompressionClicks} onChange={(rearLowCompressionClicks) => setSetup({ ...setup, rearLowCompressionClicks })} />
+            </div>
             <div className="note-card">
               <Gauge size={18} />
               <p>Offset je kolmá vzdálenost mezi osou krku řízení a osou vidlic v brýlích. Větší offset zkracuje trail, menší offset ho prodlužuje.</p>
@@ -182,11 +312,118 @@ function App() {
           </Panel>
         )}
 
+        {tab === "log" && (
+          <SetupLog
+            setup={setup}
+            geometry={geometry}
+            logDraft={logDraft}
+            setLogDraft={setLogDraft}
+            setupHistory={setupHistory}
+            onSave={saveHistoryEntry}
+            onLoad={loadHistoryEntry}
+            onDelete={deleteHistoryEntry}
+          />
+        )}
+
         {tab === "guide" && (
           <SetupGuide setup={setup} geometry={geometry} />
         )}
       </section>
     </main>
+  );
+}
+
+function ManualBaseline() {
+  return (
+    <div className="manual-card">
+      <span>Servisní manuál GSX-R 1000 K7/K8</span>
+      <div className="manual-grid">
+        <p>Vidlice baseline: {manualReference.frontForkProtrusion} mm nad horními brýlemi bez horní zátky.</p>
+        <p>Předek: preload {manualReference.frontPreload}, rebound {manualReference.frontRebound}, HSC {manualReference.frontHighCompression}, LSC {manualReference.frontLowCompression}.</p>
+        <p>Zadek: pružina {manualReference.rearSpringLength}, rebound {manualReference.rearRebound}, HSC {manualReference.rearHighCompression}, LSC {manualReference.rearLowCompression}.</p>
+      </div>
+    </div>
+  );
+}
+
+function SetupLog({ setup, geometry, logDraft, setLogDraft, setupHistory, onSave, onLoad, onDelete }) {
+  return (
+    <Panel title="Historie ladění" subtitle="Ulož aktuální stav, po testu dopiš pocit a kdykoliv se vrať ke starému nastavení.">
+      <div className="log-form">
+        <TextInput label="Název záznamu" value={logDraft.title} onChange={(title) => setLogDraft({ ...logDraft, title })} />
+        <div className="field-row">
+          <TextInput label="Místo / trať / silnice" value={logDraft.place} onChange={(place) => setLogDraft({ ...logDraft, place })} />
+          <TextInput label="Podmínky" value={logDraft.conditions} onChange={(conditions) => setLogDraft({ ...logDraft, conditions })} />
+        </div>
+        <Range label="Hodnocení pocitu" unit="/ 5" min={1} max={5} step={1} value={logDraft.rating} onChange={(rating) => setLogDraft({ ...logDraft, rating })} />
+        <TextArea
+          label="Zpětná vazba"
+          value={logDraft.feedback}
+          onChange={(feedback) => setLogDraft({ ...logDraft, feedback })}
+          placeholder="Např. rychlejší nájezd, nervózní na brzdách, lepší apex, horší grip na výjezdu..."
+        />
+        <div className="current-setup-card">
+          <span>Ukládá se aktuální setup</span>
+          <p>{summarizeSetup(setup, geometry)}</p>
+        </div>
+        <button type="button" className="save-log-button" onClick={onSave}>
+          <Save size={17} />
+          Uložit záznam
+        </button>
+      </div>
+
+      <div className="history-list">
+        {setupHistory.length === 0 ? (
+          <div className="empty-state">
+            <History size={22} />
+            <p>Zatím tu není žádný záznam. Ulož baseline, pak dělej jednu změnu po druhé a piš si pocit.</p>
+          </div>
+        ) : (
+          setupHistory.map((entry, index) => (
+            <HistoryEntry
+              key={entry.id}
+              entry={entry}
+              previousEntry={setupHistory[index + 1]}
+              onLoad={() => onLoad(entry)}
+              onDelete={() => onDelete(entry.id)}
+            />
+          ))
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function HistoryEntry({ entry, previousEntry, onLoad, onDelete }) {
+  const changes = previousEntry ? compareSetups(entry.setup, previousEntry.setup) : ["Baseline záznam"];
+  return (
+    <article className="history-entry">
+      <div className="history-entry-head">
+        <div>
+          <span>{formatDateTime(entry.createdAt)}</span>
+          <h3>{entry.title || "Setup záznam"}</h3>
+          <p>{[entry.place, entry.conditions].filter(Boolean).join(" · ") || "Bez místa a podmínek"}</p>
+        </div>
+        <strong>{entry.rating}/5</strong>
+      </div>
+      <p className="history-summary">{summarizeSetup(entry.setup, entry.geometry)}</p>
+      {entry.feedback ? <p className="history-feedback">{entry.feedback}</p> : null}
+      <ul className="change-list">
+        {changes.map((change) => (
+          <li key={change}>{change}</li>
+        ))}
+      </ul>
+      <div className="history-actions">
+        <button type="button" className="preset-button primary" onClick={onLoad}>
+          <Upload size={16} />
+          Načíst
+        </button>
+        <button type="button" className="preset-button danger" onClick={onDelete} aria-label="Smazat záznam">
+          <Trash2 size={16} />
+          Smazat
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -499,12 +736,12 @@ function Panel({ title, subtitle, children }) {
   );
 }
 
-function Range({ label, unit, value, onChange, min, max, step }) {
+function Range({ label, unit, value, onChange, min, max, step, displayValue = null }) {
   return (
     <label className="range-field">
       <span>
         {label}
-        <b>{formatNumber(value)} {unit}</b>
+        <b>{displayValue ?? `${formatNumber(value)} ${unit}`}</b>
       </span>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} />
     </label>
@@ -520,6 +757,24 @@ function Select({ label, value, onChange, options }) {
           <option key={option} value={option}>{option}</option>
         ))}
       </select>
+    </label>
+  );
+}
+
+function TextInput({ label, value, onChange, placeholder = "" }) {
+  return (
+    <label className="text-field">
+      <span>{label}</span>
+      <input type="text" value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function TextArea({ label, value, onChange, placeholder = "" }) {
+  return (
+    <label className="text-field">
+      <span>{label}</span>
+      <textarea value={value} placeholder={placeholder} rows={4} onChange={(event) => onChange(event.target.value)} />
     </label>
   );
 }
@@ -639,6 +894,81 @@ function signed(value) {
 function formatNumber(value) {
   if (Number.isInteger(value)) return value.toFixed(0);
   return Math.abs(value * 10 - Math.round(value * 10)) < 0.001 ? value.toFixed(1) : value.toFixed(2);
+}
+
+function frontPreloadVisibleGrooves(turns) {
+  const preloadTurns = Number.isFinite(Number(turns)) ? Number(turns) : factorySetup.frontPreloadTurns;
+  const visibleGrooves = 5.5 - preloadTurns / 2;
+  return Math.max(0, Math.min(5, visibleGrooves));
+}
+
+function preloadGroovesToTurns(grooves) {
+  const turns = (5.5 - Number(grooves)) * 2;
+  if (!Number.isFinite(turns)) return factorySetup.frontPreloadTurns;
+  return Math.max(0, Math.min(frontPreloadMaxTurns, turns));
+}
+
+function formatFrontPreload(turns) {
+  const preloadTurns = Number.isFinite(Number(turns)) ? Number(turns) : factorySetup.frontPreloadTurns;
+  return `${formatNumber(preloadTurns)} ot. / ${formatNumber(frontPreloadVisibleGrooves(preloadTurns))} rysky vidět`;
+}
+
+function formatDateTime(value) {
+  try {
+    return new Intl.DateTimeFormat("cs-CZ", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(new Date(value));
+  } catch {
+    return "bez data";
+  }
+}
+
+function summarizeSetup(setup, geometry) {
+  const trail = geometry?.trail ? `trail ${geometry.trail.toFixed(1)} mm` : "trail --";
+  return [
+    trail,
+    `pneu ${setup.frontPressure.toFixed(2)}/${setup.rearPressure.toFixed(2)} bar`,
+    `vidlice ${formatNumber(setup.forkProtrusion)} mm`,
+    `zadek ${formatNumber(setup.rearRideHeight)} mm`,
+    `F preload ${formatFrontPreload(setup.frontPreloadTurns)}, R ${setup.frontReboundClicks} kliků, H ${formatNumber(setup.frontHighCompressionTurns)} ot., L ${setup.frontLowCompressionClicks} kliků`,
+    `Z pružina ${formatNumber(setup.rearSpringLength)} mm, R ${setup.rearReboundClicks} kliků, H ${formatNumber(setup.rearHighCompressionTurns)} ot., L ${setup.rearLowCompressionClicks} kliků`
+  ].join(" · ");
+}
+
+function compareSetups(current, previous) {
+  const fields = [
+    ["frontPressure", "tlak předek", "bar"],
+    ["rearPressure", "tlak zadek", "bar"],
+    ["frontSag", "sag předek", "mm"],
+    ["rearSag", "sag zadek", "mm"],
+    ["forkProtrusion", "vidlice nad brýlemi", "mm"],
+    ["rearRideHeight", "zadní ride height", "mm"],
+    ["frontPreloadTurns", "přední preload", "otáček"],
+    ["frontReboundClicks", "přední rebound", "kliků"],
+    ["frontHighCompressionTurns", "přední HSC", "otáček"],
+    ["frontLowCompressionClicks", "přední LSC", "kliků"],
+    ["rearSpringLength", "zadní pružina", "mm"],
+    ["rearReboundClicks", "zadní rebound", "kliků"],
+    ["rearHighCompressionTurns", "zadní HSC", "otáček"],
+    ["rearLowCompressionClicks", "zadní LSC", "kliků"]
+  ];
+  const changes = fields
+    .map(([key, label, unit]) => {
+      const before = Number(previous?.[key]);
+      const after = Number(current?.[key]);
+      if (!Number.isFinite(before) || !Number.isFinite(after) || Math.abs(after - before) < 0.001) return null;
+      const delta = after - before;
+      return `${label}: ${formatNumber(before)} -> ${formatNumber(after)} ${unit} (${delta > 0 ? "+" : ""}${formatNumber(delta)})`;
+    })
+    .filter(Boolean);
+
+  if (current.frontTire !== previous.frontTire) changes.push(`přední pneu: ${previous.frontTire} -> ${current.frontTire}`);
+  if (current.rearTire !== previous.rearTire) changes.push(`zadní pneu: ${previous.rearTire} -> ${current.rearTire}`);
+  return changes.length ? changes : ["Bez změny hodnot proti předchozímu záznamu"];
 }
 
 createRoot(document.getElementById("root")).render(<App />);

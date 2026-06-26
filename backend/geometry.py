@@ -20,6 +20,7 @@ class BikePreset:
     baseline_rider_weight: float
     baseline_front_sag: float
     baseline_rear_sag: float
+    baseline_fork_protrusion: float
 
 
 GSXR1000_K8 = BikePreset(
@@ -36,6 +37,7 @@ GSXR1000_K8 = BikePreset(
     baseline_rider_weight=86.0,
     baseline_front_sag=35.0,
     baseline_rear_sag=30.0,
+    baseline_fork_protrusion=7.0,
 )
 
 
@@ -118,7 +120,7 @@ def calculate_geometry(data: Dict[str, object]) -> Dict[str, object]:
 
     front_sag = clamp_float(data, "frontSag", 38.0)
     rear_sag = clamp_float(data, "rearSag", 33.0)
-    fork_protrusion = clamp_float(data, "forkProtrusion", 0.0)
+    fork_protrusion = clamp_float(data, "forkProtrusion", preset.baseline_fork_protrusion)
     rear_ride_height = clamp_float(data, "rearRideHeight", 0.0)
     triple_offset = clamp_float(data, "tripleOffset", preset.triple_offset)
     rider_weight = clamp_float(data, "riderWeight", 86.0)
@@ -158,7 +160,7 @@ def calculate_geometry(data: Dict[str, object]) -> Dict[str, object]:
         front_loaded_radius
         - baseline_front_loaded_radius
         - (front_sag - preset.baseline_front_sag)
-        - fork_protrusion
+        - (fork_protrusion - preset.baseline_fork_protrusion)
     )
     rear_height_delta = (
         rear_loaded_radius
