@@ -74,6 +74,37 @@ button {
   overflow: hidden;
 }
 
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 18px;
+}
+
+.login-card {
+  width: min(100%, 430px);
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.login-card h1 {
+  margin-bottom: 10px;
+}
+
+.login-card p {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.login-card .preset-button,
+.login-card .save-log-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .app-shell::before {
   content: "";
   position: fixed;
@@ -605,6 +636,10 @@ h1 {
   line-height: 1.35;
 }
 
+.sync-note {
+  color: var(--accent);
+}
+
 .preset-actions {
   display: flex;
   gap: 6px;
@@ -759,6 +794,21 @@ select {
 .text-field input::placeholder,
 .text-field textarea::placeholder {
   color: var(--text-4);
+}
+
+.check-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 12px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.check-field input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
 }
 
 .note-card,

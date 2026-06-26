@@ -39,6 +39,7 @@ const factorySetup = {
 
 const customSetupKey = "motogeo-gsxr1000-k8-custom-setup-v1";
 const setupHistoryKey = "motogeo-gsxr1000-k8-setup-history-v1";
+const syncTokenKey = "motogeo-sync-token-v1";
 const forkProtrusionMin = -1;
 const forkProtrusionMax = 15;
 const frontPreloadMaxTurns = 10.5;
@@ -98,6 +99,27 @@ function readSetupHistory() {
   }
 }
 
+function readSavedSyncToken() {
+  try {
+    return window.localStorage.getItem(syncTokenKey) || "";
+  } catch {
+    return "";
+  }
+}
+
+function persistLocalStorage(customSetup, setupHistory) {
+  if (customSetup) {
+    window.localStorage.setItem(customSetupKey, JSON.stringify(customSetup));
+  } else {
+    window.localStorage.removeItem(customSetupKey);
+  }
+  window.localStorage.setItem(setupHistoryKey, JSON.stringify(setupHistory));
+}
+
+function authHeaders(token) {
+  return token ? { authorization: `Bearer ${token}` } : {};
+}
+
 function normalizeSetup(setup, source = setup) {
   const nextSetup = { ...setup };
   if (
@@ -123,6 +145,12 @@ function App() {
   const [geometry, setGeometry] = useState(null);
   const [tab, setTab] = useState("measure");
   const [presetMessage, setPresetMessage] = useState(savedSetup ? "Načtena tvoje uložená verze" : "Factory GSX-R 1000 K8");
+  const [syncToken, setSyncToken] = useState(() => readSavedSyncToken());
+  const [loginDraft, setLoginDraft] = useState(() => readSavedSyncToken());
+  const [rememberLogin, setRememberLogin] = useState(true);
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("Lokální cache připravena");
+  const [syncBusy, setSyncBusy] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,6 +174,86 @@ function App() {
   }, [setup]);
 
   const diagnosis = useMemo(() => buildDiagnosis(setup, geometry), [setup, geometry]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRemoteStorage() {
+      setSyncBusy(true);
+      try {
+        const response = await fetch("/api/storage", {
+          headers: authHeaders(syncToken)
+        });
+        if (cancelled) return;
+        if (response.status === 401) {
+          setNeedsLogin(true);
+          setSyncStatus("Sync vyžaduje přihlášení");
+          return;
+        }
+        if (!response.ok) throw new Error(`Storage ${response.status}`);
+        const remote = await response.json();
+        const remoteSetup = remote.customSetup ? normalizeSetup({ ...factorySetup, ...remote.customSetup }, remote.customSetup) : null;
+        const remoteHistory = Array.isArray(remote.setupHistory)
+          ? remote.setupHistory.map((entry) => ({
+              ...entry,
+              setup: normalizeSetup({ ...factorySetup, ...entry.setup }, entry.setup)
+            }))
+          : [];
+
+        if (remoteSetup || remoteHistory.length > 0) {
+          if (remoteSetup) {
+            setSavedSetup(remoteSetup);
+            setSetup(remoteSetup);
+          }
+          setSetupHistory(remoteHistory);
+          persistLocalStorage(remoteSetup, remoteHistory);
+          if (remoteSetup) setPresetMessage("Načteno ze serverového syncu");
+          setSyncStatus("Serverový sync načten");
+        } else {
+          setSyncStatus("Serverový sync připravený");
+        }
+        setNeedsLogin(false);
+      } catch {
+        if (!cancelled) setSyncStatus("Serverový sync nedostupný, používám lokální cache");
+      } finally {
+        if (!cancelled) setSyncBusy(false);
+      }
+    }
+
+    loadRemoteStorage();
+    return () => {
+      cancelled = true;
+    };
+  }, [syncToken]);
+
+  const saveRemoteState = async (nextSavedSetup, nextHistory) => {
+    setSyncBusy(true);
+    try {
+      const response = await fetch("/api/storage", {
+        method: "PUT",
+        headers: {
+          "content-type": "application/json",
+          ...authHeaders(syncToken)
+        },
+        body: JSON.stringify({
+          customSetup: nextSavedSetup,
+          setupHistory: nextHistory
+        })
+      });
+      if (response.status === 401) {
+        setNeedsLogin(true);
+        setSyncStatus("Sync vyžaduje přihlášení");
+        return;
+      }
+      if (!response.ok) throw new Error(`Storage ${response.status}`);
+      setSyncStatus("Uloženo na server");
+    } catch {
+      setSyncStatus("Serverové uložení selhalo, lokální cache zůstala");
+    } finally {
+      setSyncBusy(false);
+    }
+  };
+
   const saveHistoryEntry = () => {
     const entry = {
       id: `${Date.now()}`,
@@ -157,7 +265,8 @@ function App() {
     };
     const nextHistory = [entry, ...setupHistory].slice(0, 80);
     setSetupHistory(nextHistory);
-    window.localStorage.setItem(setupHistoryKey, JSON.stringify(nextHistory));
+    persistLocalStorage(savedSetup, nextHistory);
+    saveRemoteState(savedSetup, nextHistory);
     setLogDraft({
       title: `Změna ${nextHistory.length + 1}`,
       place: logDraft.place,
@@ -171,7 +280,8 @@ function App() {
   const deleteHistoryEntry = (entryId) => {
     const nextHistory = setupHistory.filter((entry) => entry.id !== entryId);
     setSetupHistory(nextHistory);
-    window.localStorage.setItem(setupHistoryKey, JSON.stringify(nextHistory));
+    persistLocalStorage(savedSetup, nextHistory);
+    saveRemoteState(savedSetup, nextHistory);
   };
 
   const loadHistoryEntry = (entry) => {
@@ -185,6 +295,7 @@ function App() {
       setup={setup}
       savedSetup={savedSetup}
       message={presetMessage}
+      syncStatus={syncBusy ? `${syncStatus}...` : syncStatus}
       onFactory={() => {
         setSetup(factorySetup);
         setPresetMessage("Factory GSX-R 1000 K8: 120/70, 190/50, offset 28 mm");
@@ -195,12 +306,40 @@ function App() {
         setPresetMessage(`Moje uložená verze: zadní ${savedSetup.rearTire}, offset ${savedSetup.tripleOffset} mm`);
       }}
       onSaveCustom={() => {
-        window.localStorage.setItem(customSetupKey, JSON.stringify(setup));
         setSavedSetup(setup);
+        persistLocalStorage(setup, setupHistory);
+        saveRemoteState(setup, setupHistory);
         setPresetMessage(`Uloženo: zadní ${setup.rearTire}, offset ${setup.tripleOffset} mm`);
       }}
     />
   );
+
+  if (needsLogin) {
+    return (
+      <LoginScreen
+        token={loginDraft}
+        remember={rememberLogin}
+        syncStatus={syncStatus}
+        onTokenChange={setLoginDraft}
+        onRememberChange={setRememberLogin}
+        onSubmit={() => {
+          const nextToken = loginDraft.trim();
+          if (rememberLogin) {
+            window.localStorage.setItem(syncTokenKey, nextToken);
+          } else {
+            window.localStorage.removeItem(syncTokenKey);
+          }
+          setSyncToken(nextToken);
+          setNeedsLogin(false);
+          setSyncStatus("Přihlašuji sync");
+        }}
+        onLocalOnly={() => {
+          setNeedsLogin(false);
+          setSyncStatus("Používám jen lokální cache");
+        }}
+      />
+    );
+  }
 
   return (
     <main className="app-shell">
@@ -348,6 +487,39 @@ function App() {
   );
 }
 
+function LoginScreen({ token, remember, syncStatus, onTokenChange, onRememberChange, onSubmit, onLocalOnly }) {
+  return (
+    <main className="login-shell">
+      <section className="login-card">
+        <div className="kicker"><img className="brand-icon" src="/icon-192.png" alt="" /> MotoGeo Sync</div>
+        <h1>Sync login</h1>
+        <p>Zadej sync heslo z Render proměnné MOTOGEO_SYNC_TOKEN. Když ho uložíš v zařízení, další otevření bude automatické.</p>
+        <label className="text-field">
+          <span>Sync heslo</span>
+          <input
+            type="password"
+            value={token}
+            autoComplete="current-password"
+            onChange={(event) => onTokenChange(event.target.value)}
+          />
+        </label>
+        <label className="check-field">
+          <input type="checkbox" checked={remember} onChange={(event) => onRememberChange(event.target.checked)} />
+          <span>Pamatovat v tomto zařízení</span>
+        </label>
+        <button type="button" className="save-log-button" onClick={onSubmit}>
+          <Upload size={17} />
+          Přihlásit sync
+        </button>
+        <button type="button" className="preset-button" onClick={onLocalOnly}>
+          Pokračovat lokálně
+        </button>
+        <p className="sync-note">{syncStatus}</p>
+      </section>
+    </main>
+  );
+}
+
 function ManualBaseline() {
   return (
     <div className="manual-card">
@@ -442,7 +614,7 @@ function HistoryEntry({ entry, previousEntry, onLoad, onDelete }) {
   );
 }
 
-function PresetBar({ setup, savedSetup, message, onFactory, onLoadCustom, onSaveCustom }) {
+function PresetBar({ setup, savedSetup, message, syncStatus, onFactory, onLoadCustom, onSaveCustom }) {
   const stockChanged =
     setup.rearTire !== factorySetup.rearTire ||
     setup.frontTire !== factorySetup.frontTire ||
@@ -457,6 +629,7 @@ function PresetBar({ setup, savedSetup, message, onFactory, onLoadCustom, onSave
         <span className="preset-eyebrow">Preset</span>
         <strong>{stockChanged ? "Upravená konfigurace" : "Tovární K8"}</strong>
         <p>{message}</p>
+        <p className="sync-note">{syncStatus}</p>
       </div>
       <div className="preset-actions">
         <button type="button" className="preset-button" onClick={onFactory}>
