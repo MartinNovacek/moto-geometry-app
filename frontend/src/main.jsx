@@ -210,7 +210,12 @@ function App() {
           if (remoteSetup) setPresetMessage("Načteno ze serverového syncu");
           setSyncStatus("Serverový sync načten");
         } else {
-          setSyncStatus("Serverový sync připravený");
+          if (savedSetup || setupHistory.length > 0) {
+            await saveRemoteState(savedSetup, setupHistory);
+            setSyncStatus("Lokální data nahrána na server");
+          } else {
+            setSyncStatus("Serverový sync připravený");
+          }
         }
         setNeedsLogin(false);
       } catch {
