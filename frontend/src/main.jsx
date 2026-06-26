@@ -80,10 +80,19 @@ function readSetupHistory() {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.map((entry) => ({
-      ...entry,
-      setup: normalizeSetup({ ...factorySetup, ...entry.setup }, entry.setup)
-    }));
+    return parsed.map((entry) => {
+      const rating = Number(entry.rating);
+      const migratedRating =
+        entry.ratingScale === 10 || !Number.isFinite(rating)
+          ? rating
+          : Math.max(1, Math.min(10, rating * 2));
+      return {
+        ...entry,
+        rating: Number.isFinite(migratedRating) ? migratedRating : 5,
+        ratingScale: 10,
+        setup: normalizeSetup({ ...factorySetup, ...entry.setup }, entry.setup)
+      };
+    });
   } catch {
     return [];
   }
@@ -109,7 +118,7 @@ function App() {
     place: "",
     conditions: "",
     feedback: "",
-    rating: 3
+    rating: 5
   }));
   const [geometry, setGeometry] = useState(null);
   const [tab, setTab] = useState("measure");
@@ -143,6 +152,7 @@ function App() {
       createdAt: new Date().toISOString(),
       setup,
       geometry,
+      ratingScale: 10,
       ...logDraft
     };
     const nextHistory = [entry, ...setupHistory].slice(0, 80);
@@ -153,7 +163,7 @@ function App() {
       place: logDraft.place,
       conditions: logDraft.conditions,
       feedback: "",
-      rating: 3
+      rating: 5
     });
     setTab("log");
   };
@@ -169,6 +179,28 @@ function App() {
     setPresetMessage(`Načteno z logu: ${entry.title || formatDateTime(entry.createdAt)}`);
     setTab("measure");
   };
+
+  const presetControls = (
+    <PresetBar
+      setup={setup}
+      savedSetup={savedSetup}
+      message={presetMessage}
+      onFactory={() => {
+        setSetup(factorySetup);
+        setPresetMessage("Factory GSX-R 1000 K8: 120/70, 190/50, offset 28 mm");
+      }}
+      onLoadCustom={() => {
+        if (!savedSetup) return;
+        setSetup(savedSetup);
+        setPresetMessage(`Moje uložená verze: zadní ${savedSetup.rearTire}, offset ${savedSetup.tripleOffset} mm`);
+      }}
+      onSaveCustom={() => {
+        window.localStorage.setItem(customSetupKey, JSON.stringify(setup));
+        setSavedSetup(setup);
+        setPresetMessage(`Uloženo: zadní ${setup.rearTire}, offset ${setup.tripleOffset} mm`);
+      }}
+    />
+  );
 
   return (
     <main className="app-shell">
@@ -212,25 +244,7 @@ function App() {
       <section className="workspace">
         {tab === "measure" && (
           <Panel title="Měřený stav" subtitle="Zadej hodnoty tak, jak motorka reálně stojí s jezdcem ve výbavě.">
-            <PresetBar
-              setup={setup}
-              savedSetup={savedSetup}
-              message={presetMessage}
-              onFactory={() => {
-                setSetup(factorySetup);
-                setPresetMessage("Factory GSX-R 1000 K8: 120/70, 190/50, offset 28 mm");
-              }}
-              onLoadCustom={() => {
-                if (!savedSetup) return;
-                setSetup(savedSetup);
-                setPresetMessage(`Moje uložená verze: zadní ${savedSetup.rearTire}, offset ${savedSetup.tripleOffset} mm`);
-              }}
-              onSaveCustom={() => {
-                window.localStorage.setItem(customSetupKey, JSON.stringify(setup));
-                setSavedSetup(setup);
-                setPresetMessage(`Uloženo: zadní ${setup.rearTire}, offset ${setup.tripleOffset} mm`);
-              }}
-            />
+            {presetControls}
             <Range label="Váha jezdce" unit="kg" min={55} max={125} step={1} value={setup.riderWeight} onChange={(riderWeight) => setSetup({ ...setup, riderWeight })} />
             <Range label="Curb weight motorky" unit="kg" min={170} max={230} step={1} value={setup.curbWeight} onChange={(curbWeight) => setSetup({ ...setup, curbWeight })} />
             <div className="field-row">
@@ -258,6 +272,7 @@ function App() {
 
         {tab === "setup" && (
           <Panel title="Geometrie a kliky" subtitle="Zapiš reálné nastavení motorky. Manuál bere kliky a otáčky ven z plně utažené polohy.">
+            {presetControls}
             <ManualBaseline />
             <Range label="Vidlice nad horními brýlemi bez horní zátky" unit="mm" min={forkProtrusionMin} max={forkProtrusionMax} step={0.5} value={setup.forkProtrusion} onChange={(forkProtrusion) => setSetup({ ...setup, forkProtrusion })} />
             <Range label="Zadní ride height" unit="mm" min={-8} max={12} step={0.5} value={setup.rearRideHeight} onChange={(rearRideHeight) => setSetup({ ...setup, rearRideHeight })} />
@@ -355,7 +370,7 @@ function SetupLog({ setup, geometry, logDraft, setLogDraft, setupHistory, onSave
           <TextInput label="Místo / trať / silnice" value={logDraft.place} onChange={(place) => setLogDraft({ ...logDraft, place })} />
           <TextInput label="Podmínky" value={logDraft.conditions} onChange={(conditions) => setLogDraft({ ...logDraft, conditions })} />
         </div>
-        <Range label="Hodnocení pocitu" unit="/ 5" min={1} max={5} step={1} value={logDraft.rating} onChange={(rating) => setLogDraft({ ...logDraft, rating })} />
+        <Range label="Hodnocení pocitu" unit="/ 10" min={1} max={10} step={1} value={logDraft.rating} onChange={(rating) => setLogDraft({ ...logDraft, rating })} />
         <TextArea
           label="Zpětná vazba"
           value={logDraft.feedback}
@@ -404,7 +419,7 @@ function HistoryEntry({ entry, previousEntry, onLoad, onDelete }) {
           <h3>{entry.title || "Setup záznam"}</h3>
           <p>{[entry.place, entry.conditions].filter(Boolean).join(" · ") || "Bez místa a podmínek"}</p>
         </div>
-        <strong>{entry.rating}/5</strong>
+        <strong>{entry.rating}/10</strong>
       </div>
       <p className="history-summary">{summarizeSetup(entry.setup, entry.geometry)}</p>
       {entry.feedback ? <p className="history-feedback">{entry.feedback}</p> : null}
