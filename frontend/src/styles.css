@@ -33,6 +33,8 @@ html {
   min-height: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background: var(--bg);
 }
 
@@ -709,15 +711,14 @@ h1 {
 }
 
 .range-field > span {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
 }
 
 .range-field b {
   display: inline-flex;
+  justify-self: start;
   min-width: 0;
   max-width: 100%;
   color: var(--text-1);
@@ -726,7 +727,7 @@ h1 {
   font-weight: 600;
   letter-spacing: 0;
   overflow-wrap: anywhere;
-  text-align: right;
+  text-align: left;
 }
 
 input[type="range"] {
@@ -798,7 +799,7 @@ select {
   color: var(--text-1);
   background: #10141c;
   font-family: "JetBrains Mono", monospace;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .text-field input,
@@ -810,7 +811,7 @@ select {
   border-radius: 8px;
   color: var(--text-1);
   background: #10141c;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.45;
 }
 
@@ -1332,8 +1333,18 @@ select {
     font-size: 17px;
   }
 
+  .range-field > span {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: nowrap;
+  }
+
   .range-field b {
+    justify-self: auto;
     font-size: 14px;
+    text-align: right;
   }
 
   input[type="range"] {
